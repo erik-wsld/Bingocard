@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Heidelberg Bingocard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page: #9a3a2c;
+    --page-edge: #7d2d22;
+    --card: #fffdf8;
+    --ink: #17233d;
+    --ink-soft: #4a5570;
+    --line: #17233d;
+    --stamp: #f2b705;
+    --stamp-ink: #17233d;
+    --win: #1f7a5c;
+    --title: #fffdf8;
+    --btn-bg: #fffdf8;
+    --btn-ink: #17233d;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #5e2219;
+      --page-edge: #3f1610;
+      --card: #1a2338;
+      --ink: #f4efe6;
+      --ink-soft: #b4bccf;
+      --line: #f4efe6;
+      --stamp: #f2b705;
+      --stamp-ink: #17233d;
+      --win: #4cc9a0;
+      --title: #f4efe6;
+      --btn-bg: #1a2338;
+      --btn-ink: #f4efe6;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #5e2219;
+    --page-edge: #3f1610;
+    --card: #1a2338;
+    --ink: #f4efe6;
+    --ink-soft: #b4bccf;
+    --line: #f4efe6;
+    --stamp: #f2b705;
+    --stamp-ink: #17233d;
+    --win: #4cc9a0;
+    --title: #f4efe6;
+    --btn-bg: #1a2338;
+    --btn-ink: #f4efe6;
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--page);
+    background-image: radial-gradient(ellipse at 50% 0%, var(--page) 0%, var(--page-edge) 100%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 28px 14px 40px;
+  }
+
+  h1 {
+    font-family: "Alfa Slab One", Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    color: var(--title);
+    text-align: center;
+    font-size: clamp(2rem, 9vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: 0.01em;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+
+  .card {
+    background: var(--card);
+    border: 3px solid var(--line);
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: 0 10px 0 rgba(0,0,0,.28);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cell {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    min-width: 0;
+    padding: 0;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+  }
+  .cell:focus-visible {
+    outline: 3px solid var(--win);
+    outline-offset: 2px;
+  }
+  .cell .txt {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 5px;
+    text-align: center;
+    font-weight: 600;
+    font-size: clamp(0.62rem, 2.75vw, 1.02rem);
+    line-height: 1.12;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    overflow-wrap: anywhere;
+  }
+  .cell .txt.big { font-size: clamp(0.9rem, 4.4vw, 1.55rem); }
+  .cell .txt.mid { font-size: clamp(0.75rem, 3.4vw, 1.2rem); }
+  .cell::before {
+    content: "";
+    position: absolute;
+    inset: 9%;
+    border-radius: 50%;
+    background: var(--stamp);
+    transform: scale(0) rotate(-14deg);
+    transition: transform .22s cubic-bezier(.3, 1.5, .5, 1);
+  }
+  .cell[aria-pressed="true"]::before { transform: scale(1) rotate(-6deg); }
+  .cell[aria-pressed="true"] .txt { color: var(--stamp-ink); }
+  .cell.win { border-color: var(--win); box-shadow: inset 0 0 0 3px var(--win); }
+
+  .status {
+    margin: 16px 0 0;
+    text-align: center;
+    color: var(--title);
+    font-size: 1.15rem;
+    font-weight: 600;
+    min-height: 1.6em;
+  }
+  .status strong {
+    font-family: "Alfa Slab One", Georgia, serif;
+    font-weight: 400;
+    color: var(--stamp);
+    font-size: 1.5rem;
+    margin-right: .35em;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 14px;
+  }
+  .btn {
+    font: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 2px solid var(--btn-bg);
+    background: var(--btn-bg);
+    color: var(--btn-ink);
+    cursor: pointer;
+  }
+  .btn.ghost { background: transparent; color: var(--title); border-color: var(--title); }
+  .btn:focus-visible { outline: 3px solid var(--stamp); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cell::before { transition: none; }
+  }
+  @media print {
+    body { background: #fff; }
+    .actions, .status { display: none; }
+    h1 { color: #000; }
+    .card { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Heidelberg Bingocard</h1>
+  <div class="card">
+    <ul class="grid" id="grid" aria-label="Bingo-Felder"></ul>
+  </div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <div class="actions">
+    <button class="btn" id="clear" type="button">Haken zurücksetzen</button>
+  </div>
+</main>
+
+<script>
+(function () {
+  var TASKS = [
+    "In die Fußgängerzone pinkeln",
+    "Mit Straßenmusiker ein Duett singen",
+    "Jemanden fragen, was sein Lieblingsschiff ist",
+    "\u201EEin Kompliment\u201C spielen lassen (beim DJ)",
+    "Als erstes Getränk einen Shot trinken (alle)",
+    "Nackt auf dem Castingcouch-Sofa liegen",
+    "Einen Hurricane-Shot trinken",
+    "Jemanden fragen, was der König Bobby von Apfelschorle Bedeutendes gemacht hat",
+    "3 Fotos von Fremden mit Bobby-Foto machen",
+    "Bobbys Bild abhängen",
+    "Eine Nummer klären",
+    "Einen Laden abschließen",
+    "Im Schnapsladen 4 Schnäpse probieren und keinen kaufen",
+    "Einmal Dosenstechen machen",
+    "Das Zimmer umdekorieren",
+    "Einmal Karaoke singen"
+  ];
+  var KEY = "heidelberg-bingo-v2";
+  var LINES = [
+    [0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],
+    [0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15],
+    [0,5,10,15],[3,6,9,12]
+  ];
+
+  var gridEl = document.getElementById("grid");
+  var statusEl = document.getElementById("status");
+  var marked = new Array(16).fill(false);
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ marked: marked })); } catch (e) {}
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return false;
+      var d = JSON.parse(raw);
+      if (d && Array.isArray(d.marked) && d.marked.length === 16) {
+        marked = d.marked; return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  function render() {
+    gridEl.innerHTML = "";
+    TASKS.forEach(function (task, pos) {
+      var li = document.createElement("li");
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "cell";
+      b.setAttribute("aria-pressed", marked[pos] ? "true" : "false");
+      var s = document.createElement("span");
+      var len = task.length;
+      s.className = "txt" + (len <= 20 ? " big" : (len <= 30 ? " mid" : ""));
+      s.textContent = task;
+      b.appendChild(s);
+      b.addEventListener("click", function () {
+        marked[pos] = !marked[pos];
+        b.setAttribute("aria-pressed", marked[pos] ? "true" : "false");
+        save();
+        update();
+      });
+      li.appendChild(b);
+      gridEl.appendChild(li);
+    });
+    update();
+  }
+
+  function update() {
+    var cells = gridEl.querySelectorAll(".cell");
+    var winCells = {}, wins = 0;
+    LINES.forEach(function (l) {
+      if (l.every(function (i) { return marked[i]; })) {
+        wins++;
+        l.forEach(function (i) { winCells[i] = true; });
+      }
+    });
+    cells.forEach(function (c, i) { c.classList.toggle("win", !!winCells[i]); });
+    var done = marked.filter(Boolean).length;
+    if (done === 16) {
+      statusEl.innerHTML = "<strong>Volle Karte!</strong>Alle 16 Aufgaben erledigt.";
+    } else if (wins > 0) {
+      statusEl.innerHTML = "<strong>Bingo!</strong>" + wins + (wins === 1 ? " Reihe" : " Reihen") + " komplett \u2013 " + done + " von 16 erledigt.";
+    } else {
+      statusEl.textContent = done + " von 16 erledigt";
+    }
+  }
+
+  document.getElementById("clear").addEventListener("click", function () {
+    marked = new Array(16).fill(false);
+    save();
+    render();
+  });
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
